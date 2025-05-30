@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 const studentRoutes = require('./routes/studentAuth');
 const companyRoutes = require('./routes/companyAuth');
@@ -19,13 +20,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Static file serving
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
 // Routes
 app.use('/api/student', studentRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/jobs', jobRoutes); 
 app.use('/api/scholar', scholarRoutes);
 app.use('/api/internship', internshipRoutes);
-app.use('/api/application', applicationRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/opportunity', opportunityRoutes);
 
 // MongoDB bağlantısı

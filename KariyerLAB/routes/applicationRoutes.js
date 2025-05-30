@@ -1,27 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const {
-  createApplication,
-  getAllApplications,
-  getApplicationById,
-  getApplicationsByOpportunity,
-} = require('../controllers/applicationController');
+const { applyToOpportunity , getApplicationsByCompanyName , getApplicationsByStudentEmail, getOpportunitiesByStudentEmail,updateApplicationStatus } = require('../controllers/applicationController');
 
-const { getAllApplicationsForCompany } = require('../controllers/getAppFromCompany');
 
-// Başvuru oluştur
-router.post('/create/apply', createApplication);
+router.post('/apply', applyToOpportunity);
+router.get('/company/:companyName', getApplicationsByCompanyName); 
+// Öğrenci e-mail'ine göre başvuruları getir (Application kayıtları)
+router.get('/student/:email', getApplicationsByStudentEmail);
+// Öğrenci e-mail'ine göre başvuru yaptığı ilanları getir (Opportunity kayıtları)
+router.get('/student/:email/opportunities', getOpportunitiesByStudentEmail);
 
-// Tüm başvuruları getir
-router.get('/getAllApply', getAllApplications);
-
-// ID ile başvuru getir
-router.get('getApply/:id', getApplicationById);
-
-// Belirli ilana yapılan başvurular
-router.get('/opportunity/:type/:id', getApplicationsByOpportunity);
-
-// Şirket adına göre başvuruları getir
-router.get('/applications/company/:companyName', getAllApplicationsForCompany);
+router.patch('/:id/status', updateApplicationStatus); // PATCH: Başvuru durum güncelle
 
 module.exports = router;

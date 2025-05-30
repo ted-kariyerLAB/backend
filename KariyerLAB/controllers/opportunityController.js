@@ -17,7 +17,6 @@ exports.createOpportunity = async (req, res) => {
   }
 };
 
-
 exports.getAllOpportunities = async (req, res) => {
   try {
     const opportunities = await Opportunity.find().sort({ createdAt: -1 });
@@ -40,4 +39,21 @@ exports.getOpportunityByCompanyName = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+// İlan silme fonksiyonu
+exports.deleteOpportunityById = async (req, res) => {
+  try {
+      const { id } = req.params;
+      // İlanı sil
+      const deletedOpportunity = await Opportunity.findByIdAndDelete(id);
+
+      if (!deletedOpportunity) {  
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+
+      res.status(200).json({ message: 'Opportunity deleted successfully' });
+      } catch (error) {
+      res.status(500).json({ message: error.message });
+      }
 };

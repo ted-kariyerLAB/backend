@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => { 
-    const { email, password,name,surname,phone,university,department } = req.body;
+    const { email, password,name,surname,phone,university,department} = req.body;
 
     try {
         const existingStudent = await Student.findOne({ email });
@@ -37,7 +37,9 @@ exports.register = async (req, res) => {
             return res.status(400).json({ message: 'Name and surname cannot be empty' });
         }   
         // Create a new student instance with the additional fields
-        const student = new Student({ email, password: hashedPassword, name, surname, phone, university, department });
+        const student = new Student({ email, password: hashedPassword, name, surname, phone, university, department, 
+             photo: req.file ? req.file.filename : null,
+         });
         await student.save();
 
         res.status(201).json({ message: 'Student registered successfully' });
@@ -65,3 +67,38 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.getStudentByEmail = async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        const student = await Student.findOne({ email }).select('-password');
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        const studentData = student.toObject();
+        if (studentData.photo) {
+            studentData.photoUrl = `${req.protocol}://${req.get('host')}/uploads/studentPhotos/${studentData.photo}`;
+        }
+
+        res.status(200).json(studentData);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updatePhoto = async (req, res) => {
+    try {
+        const student = await Student.findOneAndUpdate(
+            { email: req.params.email },
+            { photo: req.file ? req.file.filename : null },
+            { new: true }
+        );
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.json(student);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};

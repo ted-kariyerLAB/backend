@@ -62,13 +62,71 @@ exports.getCompanyByName = async (req, res) => {
     try {
         const companyName = req.params.companyName;
 
+        if (!companyName) {
+        // Parametre yoksa tüm şirketleri getir
+        const companies = await Company.find().select('-password');
+        return res.status(200).json(companies);
+        }    
+
         const company = await Company.findOne({ companyName }).select('-password');
         if (!company) {
             return res.status(404).json({ message: 'Company not found' });
         }
 
-        res.status(200).json(company);
+        const companyData = company.toObject();
+        if (companyData.photo) {
+            companyData.photoUrl = `${req.protocol}://${req.get('host')}/uploads/companyPhotos/${companyData.photo}`;
+        }
+
+        res.status(200).json(companyData);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.companyReview = async (req, res) => {
+    const { companyName, studentEmail, rating, comment, statusGiven } = req.body;
+
+    try {
+        const company = await Company.findOne({ companyName });
+        if (!company) return res.status(404).json({ message: 'Company not found' });
+
+        if (rating < 1 || rating > 5) return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+
+        if (!['accepted', 'rejected'].includes(statusGiven)) {
+            return res.status(400).json({ message: 'Invalid status given' });
+        }
+
+        // Aynı öğrenci aynı şirkete bir kez değerlendirme yapabilsin
+        const existingReview = company.reviews.find(r => r.studentEmail === studentEmail);
+        if (existingReview) return res.status(400).json({ message: 'You have already reviewed this company' });
+
+        company.reviews.push({ studentEmail, rating, comment, statusGiven });
+        
+        // Ortalamayı güncelle (tüm değerlendirmelerin ortalaması)
+        const totalRating = company.reviews.reduce((acc, r) => acc + r.rating, 0);
+        company.companyRating = (totalRating / company.reviews.length).toFixed(1);
+
+        await company.save();
+
+        res.status(200).json({ message: 'Review added successfully', company});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updatePhoto = async (req, res) => {
+    try {
+        const company = await Company.findOneAndUpdate(
+            { name: req.params.companyName },
+            { photo: req.file ? req.file.filename : null },
+            { new: true }
+        );
+        if (!company) {
+            return res.status(404).json({ message: 'Company not found' });
+        }
+        res.json(company);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 };

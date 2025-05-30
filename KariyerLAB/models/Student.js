@@ -8,6 +8,7 @@ const StudentSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     university: { type: String, required: true },
     department: { type: String, required: true },
+    photo: { type: String },
 });
 
 module.exports = mongoose.model('Student', StudentSchema);
