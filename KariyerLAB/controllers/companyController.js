@@ -118,7 +118,7 @@ exports.companyReview = async (req, res) => {
 exports.updatePhoto = async (req, res) => {
     try {
         const company = await Company.findOneAndUpdate(
-            { name: req.params.companyName },
+            { email: req.params.email },
             { photo: req.file ? req.file.filename : null },
             { new: true }
         );
