@@ -130,3 +130,25 @@ exports.updatePhoto = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 };
+
+exports.updateCompanyInfo = async (req, res) => {
+    const { companyName, companyAddress, companyPhone, companySector } = req.body;
+    const email = req.params.email;
+
+    try {
+
+        const updatedCompany = await Company.findOneAndUpdate(
+            { email },
+            { companyName, companyAddress, companyPhone, companySector },
+            { new: true }
+        ).select('-password');
+
+        if (!updatedCompany) {
+            return res.status(404).json({ message: 'Company not found' });
+        }
+
+        res.status(200).json({ message: 'Company info updated successfully', company: updatedCompany });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
