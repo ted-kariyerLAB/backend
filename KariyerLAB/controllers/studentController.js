@@ -102,3 +102,25 @@ exports.updatePhoto = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 };
+
+exports.updateStudentInfo = async (req, res) => {
+    const { name, surname, phone, university,department } = req.body;
+    const email = req.params.email;
+
+    try {
+
+        const updatedStudent = await Student.findOneAndUpdate(
+            { email },
+            { name, surname, phone, university,department},
+            { new: true }
+        ).select('-password');
+
+        if (!updatedStudent) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        res.status(200).json({ message: 'Student info updated successfully', student: updatedStudent });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
